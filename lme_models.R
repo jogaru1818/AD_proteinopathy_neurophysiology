@@ -1,31 +1,42 @@
 
+### Script wrote by Jonathan Gallego Rudolf - PhD at McGill University
+
 ### Run and plot LME models---- 
 
 ### Script used to calculate LME models to test for the association between MEG and amyloid
 ### across the whole-brain, and its interaction with temporal tau accumulation. 
+### 1. Get data and load required libraries and functions
+### 2. Run LME models
+### 3. Calculate model residuals to generate plots
+### 4. Main effect plots
+### 5. Interaction plots
+### 6. Interaction plots for WB Ab*Tau models
 
 
 
-
-### 1. Get data and load libraries and functions ----
+### 1. Get data and load required libraries and functions ----
 
 ### Load data and required packages
-require(ggplot2)
-require(nlme)
+require(ggplot2)  ### Plot visualization 
+require(nlme)     ### Run lme models
 library(sjPlot)
 library(ggpubr)
 require(MuMIn)
 require(grid)
 
-### Separate residual data into low and high tau for plotting the interactions (based on entorhinal Tau+ 2SD YNG threshold 1.25)
+### Load function to separate residual data into low and high tau for plotting 
+### the interactions (based on entorhinal Tau+ 2SD YNG threshold 1.25; based 
+### on tau meta-ROI Tau+ 2SD YNG threshold 1.25)
 source("/Users/jogar/Documents/PREVENT_AD/Multimodal_data/lme_analysis/scripts/f_separate_tau_data.R")
 
-### Separate residual data into low and high tau for plotting the interactions (based on tau meta-ROI Tau+ 2SD YNG threshold 1.25)
-source("/Users/jogar/Documents/PREVENT_AD/Multimodal_data/lme_analysis/scripts/f_separate_tau_data.R")
+
+### Load data
+# data=read.csv("C:/Users/jogar/Documents/data_PAD.csv",header=T)
 
 ### Verify that categorical variables are defined as factors
-data$sex = as.factor(data$sex); data$rois = as.factor(data$rois)
-data$ids = as.factor(data$ids); data$amyloid_status = as.factor(data$amyloid_status)
+data$sex = as.factor(data$sex); data$amyloid_status = as.factor(data$amyloid_status)
+
+
 
 
 
@@ -52,7 +63,7 @@ pet_variables=c("Ab_data_newr","Ab_data_newr * Tau_ent_newr","Ab_data_newr * Tau
 ### Set values to run the model
 ##### MODIFY OUTCOME, PREDICTORS, COVARIATES AND FILENAME TO RUN DIFFERENT MODELS
 outcome=meg_variables[3]
-predictors=pet_variables[5]
+predictors=pet_variables[2]
 covariates="age + sex + edu + hipp_vol + trials"; ### ALTERNATIVELY: covariates="age + sex + edu + hipp_vol + trials + offset + exponent"
 filename="model_test"
 path="C:/Users/jogar/Documents/PREVENT_AD/Multimodal_data/Figures/"
@@ -133,20 +144,3 @@ interaction_plot(data_low_tau, data_high_tau, "Ab_data_newr", "delta", "tau_ent"
 interaction_plot(data_low_tau, data_high_tau, "Ab_data_newr", "alpha", "tau_ent",path, "no")
 interaction_plot(data_low_tau, data_high_tau, "Ab_data_newr", "delta", "tau_meta_roi",path, "no")
 interaction_plot(data_low_tau, data_high_tau, "Ab_data_newr", "alpha", "tau_meta_roi",path, "no")
-
-
-
-
-### 6. Interaction plots for WB Ab*Tau models----
-
-### Separate top and bottom quartiles for plotting interaction of Ab*Tau WB
-
-data_low_tau=resid_data[FALSE,]; data_high_tau=resid_data[FALSE,];
-for (i in seq(1,nrow(resid_data),68)){
-  sub=resid_data[i:(i+67),]; sub=sub[order(sub$Tau_data_newr),];
-  low_tau_sub=sub[1:17,]; high_tau_sub=sub[52:68,];
-  data_low_tau=rbind(data_low_tau,low_tau_sub); data_high_tau=rbind(data_high_tau,high_tau_sub);
-}
-
-interaction_plot(data_low_tau, data_high_tau, "Ab_data_newr", "delta", "wb",path, "no")
-interaction_plot(data_low_tau, data_high_tau, "Ab_data_newr", "alpha", "wb",path, "no")
